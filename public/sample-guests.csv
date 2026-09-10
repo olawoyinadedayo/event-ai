@@ -1,0 +1,9 @@
+name,email,rsvp_status,dietary_notes,tags
+Sarah Johnson,sarah@gmail.com,confirmed,Gluten-free,"Bride Side, Family"
+Alex Miller,alex@proton.me,confirmed,,Groom Side
+Uncle Bob,bob@example.com,pending,Nut allergy,Family
+Jessica Lee,jess@gmail.com,confirmed,Vegan,"Bride Side, College Friends"
+Marcus Webb,marcus@gmail.com,confirmed,,Groom Side
+Priya Patel,priya@example.com,declined,,Bride Side
+Tom Nguyen,tom@example.com,confirmed,Vegetarian,Work
+Emily Davis,emily@gmail.com,confirmed,Gluten-free,College Friends
