@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ token: string }> },
@@ -48,7 +46,6 @@ export async function PATCH(
     .select()
     .single();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

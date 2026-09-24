@@ -197,14 +197,15 @@ export function AutoSeatDialog({
           {!plan ? (
             <Button
               onClick={handleGenerate}
-              loading={isGenerating}
-              disabled={unassignedConfirmed.length === 0 || tables.length === 0}
+              disabled={
+                isGenerating || unassignedConfirmed.length === 0 || tables.length === 0
+              }
             >
               <Sparkles className="h-4 w-4" />
               Generate plan
             </Button>
           ) : (
-            <Button onClick={handleApply} loading={isApplying}>
+            <Button onClick={handleApply} disabled={isApplying}>
               Apply seating
             </Button>
           )}

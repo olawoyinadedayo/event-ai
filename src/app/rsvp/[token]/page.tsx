@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle, XCircle, MinusCircle, Utensils, Calendar, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface GuestData {
   id: string;
@@ -75,7 +76,7 @@ export default function RSVPPage({ params }: { params: Promise<{ token: string }
     }
   };
 
-  const handleDietaryChange = (e: React.ChangeEvent<HTMLTextareaElement>) => {
+  const handleDietaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDietaryNotes(e.target.value);
   };
 

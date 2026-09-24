@@ -14,17 +14,21 @@ export async function addGuestAction(
   },
 ) {
   const supabase = await createClient();
-  const { error } = await supabase.from("guests").insert({
-    event_id: eventId,
-    name: guest.name,
-    email: guest.email ?? null,
-    rsvp_status: guest.rsvp_status ?? "pending",
-    dietary_notes: guest.dietary_notes ?? null,
-    tags: guest.tags ?? [],
-  });
+  const { data, error } = await supabase
+    .from("guests")
+    .insert({
+      event_id: eventId,
+      name: guest.name,
+      email: guest.email ?? null,
+      rsvp_status: guest.rsvp_status ?? "pending",
+      dietary_notes: guest.dietary_notes ?? null,
+      tags: guest.tags ?? [],
+    })
+    .select()
+    .single();
 
-  if (error) return { error: error.message };
-  return { error: null };
+  if (error) return { error: error.message, data: null };
+  return { error: null, data };
 }
 
 export async function bulkAddGuestsAction(

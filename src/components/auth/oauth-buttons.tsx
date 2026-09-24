@@ -70,7 +70,7 @@ export function OAuthButtons() {
             type="button"
             variant="outline"
             className="w-full"
-            loading={oauthPending === provider.id}
+            disabled={oauthPending === provider.id}
             onClick={() => handleOAuth(provider.id)}
           >
             {oauthPending === provider.id ? null : provider.icon}

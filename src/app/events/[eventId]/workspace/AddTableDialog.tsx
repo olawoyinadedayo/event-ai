@@ -123,7 +123,7 @@ export function AddTableDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" loading={isPending}>
+            <Button type="submit" disabled={isPending}>
               Add table
             </Button>
           </div>

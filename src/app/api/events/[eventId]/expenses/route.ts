@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> },
@@ -18,7 +16,6 @@ export async function GET(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await supabase
     .from("expenses")
     .select("*")
@@ -66,7 +63,6 @@ export async function POST(
     return NextResponse.json({ error: "Title and category are required" }, { status: 400 });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await supabase
     .from("expenses")
     .insert({

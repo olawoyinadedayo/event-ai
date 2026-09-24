@@ -57,19 +57,13 @@ export function AddGuestDialog({
         setError(result.error);
         return;
       }
+      if (!result.data) {
+        setError("Guest was not created.");
+        return;
+      }
       setError(null);
       onOpenChange(false);
-      onGuestAdded({
-        id: crypto.randomUUID(),
-        event_id: eventId,
-        name: guest.name,
-        email: guest.email ?? null,
-        rsvp_status: guest.rsvp_status ?? "pending",
-        dietary_notes: guest.dietary_notes ?? null,
-        tags: guest.tags ?? [],
-        table_id: null,
-        seat_number: null,
-      });
+      onGuestAdded(result.data);
     });
   }
 
@@ -133,7 +127,7 @@ export function AddGuestDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" loading={isPending}>
+            <Button type="submit" disabled={isPending}>
               Add guest
             </Button>
           </div>

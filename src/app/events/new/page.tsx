@@ -82,7 +82,7 @@ export default function NewEventPage() {
                 Cancel
               </Button>
             </Link>
-            <Button type="submit" loading={isPending}>
+            <Button type="submit" disabled={isPending}>
               Create event
             </Button>
           </div>

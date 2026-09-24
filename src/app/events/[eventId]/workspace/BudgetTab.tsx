@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Plus, Edit, Trash2, CheckCircle, Circle, DollarSign, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Expense, ExpenseCategory } from "@/types/app";
+import type { Expense } from "@/types/app";
+import type { ExpenseCategory } from "@/types/database";
 
 interface BudgetTabProps {
   eventId: string;

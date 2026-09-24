@@ -136,19 +136,11 @@ export function SmartPasteDialog({
         setError(result.error);
         return;
       }
-      onGuestsImported(
-        editing.map((g) => ({
-          id: crypto.randomUUID(),
-          event_id: eventId,
-          name: g.name,
-          email: g.email ?? null,
-          rsvp_status: g.rsvp_status ?? "pending",
-          dietary_notes: g.dietary_notes ?? null,
-          tags: g.tags ?? [],
-          table_id: null,
-          seat_number: null,
-        })),
-      );
+      if (!result.data) {
+        setError("Guests were not imported.");
+        return;
+      }
+      onGuestsImported(result.data);
       handleClose();
     });
   }
@@ -323,7 +315,7 @@ export function SmartPasteDialog({
                   >
                     Start over
                   </Button>
-                  <Button size="sm" onClick={handleImport} loading={isImporting}>
+                  <Button size="sm" onClick={handleImport} disabled={isImporting}>
                     Import all
                   </Button>
                 </div>
@@ -417,8 +409,7 @@ export function SmartPasteDialog({
             {mode === "paste" ? (
               <Button
                 onClick={handleParse}
-                loading={isParsing}
-                disabled={!rawText.trim()}
+                disabled={isParsing || !rawText.trim()}
               >
                 {isParsing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

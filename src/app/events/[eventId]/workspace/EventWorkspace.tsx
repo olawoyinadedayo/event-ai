@@ -37,8 +37,6 @@ import {
   Sparkles,
   Users,
   DollarSign,
-  Mail,
-  Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +66,6 @@ export function EventWorkspace({
   const [addGuestOpen, setAddGuestOpen] = useState(false);
   const [invitesOpen, setInvitesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("guests");
-  const [isMounted, setIsMounted] = useState(false);
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -76,10 +73,6 @@ export function EventWorkspace({
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // Realtime subscriptions
   useEffect(() => {
@@ -318,7 +311,10 @@ export function EventWorkspace({
   }
 
   const handleGuestsImported = useCallback((newGuests: Guest[]) => {
-    setGuests((prev) => [...prev, ...newGuests]);
+    setGuests((prev) => {
+      const uniqueGuests = newGuests.filter((guest) => !prev.some((item) => item.id === guest.id));
+      return uniqueGuests.length === 0 ? prev : [...prev, ...uniqueGuests];
+    });
   }, []);
 
   const handleSeated = useCallback(
@@ -340,11 +336,11 @@ export function EventWorkspace({
   );
 
   const handleTableAdded = useCallback((table: Table) => {
-    setTables((prev) => [...prev, table]);
+    setTables((prev) => (prev.some((item) => item.id === table.id) ? prev : [...prev, table]));
   }, []);
 
   const handleGuestAdded = useCallback((guest: Guest) => {
-    setGuests((prev) => [guest, ...prev]);
+    setGuests((prev) => (prev.some((item) => item.id === guest.id) ? prev : [guest, ...prev]));
   }, []);
 
   const eventContext = useMemo(
@@ -365,8 +361,8 @@ export function EventWorkspace({
   );
 
   return (
-    isMounted ? (
-      <DndContext
+    <DndContext
+      id={`event-${initialEvent.id}`}
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
@@ -540,43 +536,6 @@ export function EventWorkspace({
           eventName={initialEvent.name}
           guests={guests}
         />
-      </DndContext>
-    ) : (
-      <div className="flex h-screen overflow-hidden bg-zinc-50">
-        <div className="flex w-[320px] shrink-0 flex-col border-r border-zinc-200 bg-white">
-          <div className="border-b border-zinc-200 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-zinc-900">Guests</h2>
-              <span className="rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 animate-pulse">
-                {stats.total} guests
-              </span>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto px-3 py-3">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="animate-pulse space-y-4 w-full max-w-xs">
-                <div className="h-16 rounded-lg bg-zinc-100" />
-                <div className="h-16 rounded-lg bg-zinc-100" />
-                <div className="h-16 rounded-lg bg-zinc-100" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4">
-            <div className="flex min-w-0 items-center gap-2">
-              <LayoutDashboard className="h-4 w-4 shrink-0 text-zinc-400" />
-              <h1 className="truncate text-sm font-semibold text-zinc-900">{initialEvent.name}</h1>
-            </div>
-          </header>
-          <div className="flex-1 flex items-center justify-center bg-zinc-50">
-            <div className="animate-pulse space-y-4 w-full max-w-md">
-              <div className="h-32 rounded-lg bg-zinc-100" />
-              <div className="h-32 rounded-lg bg-zinc-100" />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    </DndContext>
   );
 }

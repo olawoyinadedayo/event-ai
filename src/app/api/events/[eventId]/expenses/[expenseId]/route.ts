@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
 import { NextRequest, NextResponse } from "next/server";
+
+type ExpenseUpdate = Database["public"]["Tables"]["expenses"]["Update"];
 
 export async function PATCH(
   req: NextRequest,
@@ -16,22 +19,32 @@ export async function PATCH(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Verify user owns the event through the expense
+  const { data: event } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!event) {
+    return NextResponse.json({ error: "Expense not found" }, { status: 404 });
+  }
+
   const { data: expense } = await supabase
     .from("expenses")
-    .select("id, events!inner(user_id)")
+    .select("id")
     .eq("id", expenseId)
     .eq("event_id", eventId)
     .single();
 
-  if (!expense || (expense as any).events?.user_id !== user.id) {
+  if (!expense) {
     return NextResponse.json({ error: "Expense not found" }, { status: 404 });
   }
 
   const body = await req.json();
   const { title, category, estimated_cost, actual_cost, paid_status, notes } = body;
 
-  const updates: Record<string, any> = {};
+  const updates: ExpenseUpdate = {};
   if (title !== undefined) updates.title = title;
   if (category !== undefined) updates.category = category;
   if (estimated_cost !== undefined) updates.estimated_cost = estimated_cost;
@@ -68,15 +81,25 @@ export async function DELETE(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Verify user owns the event through the expense
+  const { data: event } = await supabase
+    .from("events")
+    .select("id")
+    .eq("id", eventId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!event) {
+    return NextResponse.json({ error: "Expense not found" }, { status: 404 });
+  }
+
   const { data: expense } = await supabase
     .from("expenses")
-    .select("id, events!inner(user_id)")
+    .select("id")
     .eq("id", expenseId)
     .eq("event_id", eventId)
     .single();
 
-  if (!expense || (expense as any).events?.user_id !== user.id) {
+  if (!expense) {
     return NextResponse.json({ error: "Expense not found" }, { status: 404 });
   }
 

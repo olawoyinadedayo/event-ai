@@ -277,7 +277,7 @@ export async function bulkAddParsedGuestsAction(
     tags: g.tags ?? [],
   }));
 
-  const { error } = await supabase.from("guests").insert(rows);
-  if (error) return { error: error.message };
-  return { error: null };
+  const { data, error } = await supabase.from("guests").insert(rows).select();
+  if (error) return { error: error.message, data: null };
+  return { error: null, data };
 }
