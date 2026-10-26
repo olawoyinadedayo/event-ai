@@ -18,26 +18,34 @@ export async function loginAction(formData: FormData) {
 }
 
 export async function signupAction(formData: FormData) {
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const name = String(formData.get("name") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
   const role = String(formData.get("role") ?? "diy_host");
+  const appUrl = (
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+  ).replace(/\/$/, "");
 
   if (password.length < 6) {
     return { error: "Password must be at least 6 characters." };
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { name, role },
+      emailRedirectTo: `${appUrl}/auth/callback?next=%2Fdashboard`,
     },
   });
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (!data.session) {
+    return { email };
   }
 
   redirect("/dashboard");

@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { signupAction } from "../actions";
-import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { MailCheck } from "lucide-react";
 import Link from "next/link";
 
 const roles = [
@@ -16,15 +16,67 @@ const roles = [
 
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [role, setRole] = useState("diy_host");
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(formData: FormData) {
+    setError(null);
     formData.set("role", role);
     startTransition(async () => {
       const result = await signupAction(formData);
-      if (result?.error) setError(result.error);
+      if (result && "error" in result && typeof result.error === "string") {
+        setError(result.error);
+        return;
+      }
+      if (result && "email" in result && typeof result.email === "string") {
+        setSentTo(result.email);
+      }
     });
+  }
+
+  if (sentTo) {
+    return (
+      <div
+        className="rounded-2xl border border-zinc-200/80 bg-white/85 p-8 text-center shadow-2xl shadow-indigo-950/[0.06] backdrop-blur-xl"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
+          <MailCheck className="h-6 w-6" />
+        </div>
+        <h1 className="mt-5 text-2xl font-semibold tracking-[-0.03em] text-zinc-950">
+          Check your email
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-zinc-500">
+          We sent a confirmation link to
+        </p>
+        <p className="mt-1 break-all text-sm font-medium text-zinc-800">
+          {sentTo}
+        </p>
+        <p className="mt-4 text-sm leading-6 text-zinc-500">
+          Click the link to activate your account, then sign in. It may take a
+          minute to arrive — check your spam folder if you don&apos;t see it.
+        </p>
+
+        <Link
+          href="/login"
+          className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
+        >
+          Go to sign in
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            setSentTo(null);
+            setError(null);
+          }}
+          className="mt-3 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+        >
+          Use a different email
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -35,11 +87,6 @@ export default function SignupPage() {
         </h1>
         <p className="mt-1 text-sm text-zinc-500">Start planning in minutes</p>
       </div>
-
-      <OAuthButtons />
-      <p className="mb-5 text-center text-xs text-zinc-400">
-        OAuth accounts start as a DIY Host — you can upgrade to Pro Planner later.
-      </p>
 
       <form action={handleSubmit} className="space-y-4">
         <div>

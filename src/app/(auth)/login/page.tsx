@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { loginAction } from "../actions";
-import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +26,6 @@ export default function LoginPage() {
         </h1>
         <p className="mt-1 text-sm text-zinc-500">Sign in to your EventPilot account</p>
       </div>
-
-      <OAuthButtons />
 
       <form action={handleSubmit} className="space-y-4">
         <div>
