@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { signupAction } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { MailCheck } from "lucide-react";
@@ -99,7 +100,14 @@ export default function SignupPage() {
         </div>
         <div>
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" required minLength={6} placeholder="At least 6 characters" />
+          <PasswordInput
+            id="password"
+            name="password"
+            required
+            minLength={6}
+            autoComplete="new-password"
+            placeholder="At least 6 characters"
+          />
         </div>
 
         <div>
