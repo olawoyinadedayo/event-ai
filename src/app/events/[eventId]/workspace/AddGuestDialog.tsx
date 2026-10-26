@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { X } from "lucide-react";
 import type { Guest, NewGuest } from "@/types/app";
 
 interface AddGuestDialogProps {
@@ -69,14 +70,28 @@ export function AddGuestDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onOpenChange(false)}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-zinc-900">Add guest</h2>
-        <p className="mb-4 text-sm text-zinc-500">
-          Add a single guest, or use AI Smart Paste for bulk entry.
-        </p>
+      <div className="animate-soft-rise w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl shadow-zinc-950/25">
+        <div className="mb-5 flex items-start justify-between">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight text-zinc-950">
+              Add guest
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Add a single guest, or use AI Smart Paste for bulk entry.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="rounded-xl p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -94,7 +109,7 @@ export function AddGuestDialog({
             <select
               id="g-rsvp"
               name="rsvp_status"
-              className="h-9 w-full rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
             >
               {rsvpOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -120,10 +135,12 @@ export function AddGuestDialog({
           </div>
 
           {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+            <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-inset ring-red-600/10">
+              {error}
+            </p>
           )}
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

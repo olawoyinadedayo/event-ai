@@ -147,18 +147,27 @@ export function SmartPasteDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-indigo-600" />
-            <h2 className="text-lg font-semibold text-zinc-900">AI Smart Paste</h2>
+      <div className="animate-soft-rise flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/25">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <div>
+              <h2 className="text-base font-semibold tracking-tight text-zinc-950">
+                AI Smart Paste
+              </h2>
+              <p className="mt-0.5 text-[11px] text-zinc-400">
+                Turn messy text or a CSV into a clean guest list.
+              </p>
+            </div>
           </div>
           <button
             onClick={handleClose}
-            className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+            className="rounded-xl p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
             aria-label="Close"
           >
             <Trash2 className="h-4 w-4 rotate-45" />
@@ -169,14 +178,14 @@ export function SmartPasteDialog({
           {!parsed ? (
             <div>
               {/* Mode tabs */}
-              <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-zinc-100 p-1">
+              <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-zinc-100/80 p-1">
                 <button
                   type="button"
                   onClick={() => switchMode("paste")}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                     mode === "paste"
-                      ? "bg-white text-zinc-900 shadow-sm"
+                      ? "bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-100"
                       : "text-zinc-500 hover:text-zinc-700",
                   )}
                 >
@@ -187,9 +196,9 @@ export function SmartPasteDialog({
                   type="button"
                   onClick={() => switchMode("csv")}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    "flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                     mode === "csv"
-                      ? "bg-white text-zinc-900 shadow-sm"
+                      ? "bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-100"
                       : "text-zinc-500 hover:text-zinc-700",
                   )}
                 >
@@ -240,7 +249,7 @@ export function SmartPasteDialog({
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleFileDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 py-12 transition-colors hover:border-indigo-400 hover:bg-indigo-50/40"
+                    className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/60 py-12 transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
                   >
                     {fileName ? (
                       <>
@@ -288,12 +297,12 @@ export function SmartPasteDialog({
               )}
 
               {error && (
-                <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+                <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-inset ring-red-600/10">
                   {error}
                 </p>
               )}
               {warning && (
-                <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700 ring-1 ring-inset ring-amber-600/10">
                   {warning}
                 </p>
               )}
@@ -321,7 +330,7 @@ export function SmartPasteDialog({
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-lg border border-zinc-200">
+              <div className="overflow-hidden rounded-xl border border-zinc-200">
                 <table className="w-full text-sm">
                   <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500">
                     <tr>
@@ -402,7 +411,7 @@ export function SmartPasteDialog({
         </div>
 
         {!parsed && (
-          <div className="flex justify-end gap-3 border-t border-zinc-200 px-6 py-4">
+          <div className="flex justify-end gap-2 border-t border-zinc-100 px-6 py-4">
             <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>

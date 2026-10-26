@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   DndContext,
   DragOverlay,
@@ -16,7 +17,10 @@ import {
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type { Event, Guest, Table } from "@/types/app";
 import { GuestSidebar } from "./GuestSidebar";
+import { GuestRoster } from "./GuestRoster";
 import { FloorPlanCanvas } from "./FloorPlanCanvas";
+import { WorkspaceOverview } from "./WorkspaceOverview";
+import { WorkspaceDock, type WorkspaceView } from "./WorkspaceDock";
 import { CoPilotChat } from "./ai/CoPilotChat";
 import { BudgetTab } from "./BudgetTab";
 import { InvitesDialog } from "./InvitesDialog";
@@ -32,13 +36,11 @@ import {
   updateTablePositionAction,
 } from "../actions";
 import {
-  LayoutDashboard,
-  MessageSquare,
+  CalendarDays,
+  Plus,
   Sparkles,
   Users,
-  DollarSign,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface EventWorkspaceProps {
   initialEvent: Event;
@@ -46,7 +48,7 @@ interface EventWorkspaceProps {
   initialTables: Table[];
 }
 
-type ActiveTab = "guests" | "budget" | "canvas";
+type ActiveTab = WorkspaceView;
 
 export function EventWorkspace({
   initialEvent,
@@ -65,7 +67,7 @@ export function EventWorkspace({
   const [addTableOpen, setAddTableOpen] = useState(false);
   const [addGuestOpen, setAddGuestOpen] = useState(false);
   const [invitesOpen, setInvitesOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<ActiveTab>("guests");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -156,6 +158,19 @@ export function EventWorkspace({
       });
   }, [guests, search, tagFilter, rsvpFilter]);
 
+  const filteredRoster = useMemo(() => {
+    return guests.filter((g) => {
+      if (rsvpFilter !== "all" && g.rsvp_status !== rsvpFilter) return false;
+      if (search && !g.name.toLowerCase().includes(search.toLowerCase())) {
+        return false;
+      }
+      if (tagFilter.length > 0 && !tagFilter.some((t) => g.tags.includes(t))) {
+        return false;
+      }
+      return true;
+    });
+  }, [guests, search, tagFilter, rsvpFilter]);
+
   const seatedGuests = useMemo(
     () => guests.filter((g) => g.table_id),
     [guests],
@@ -167,6 +182,7 @@ export function EventWorkspace({
       confirmed: guests.filter((g) => g.rsvp_status === "confirmed").length,
       seated: seatedGuests.length,
       pending: guests.filter((g) => g.rsvp_status === "pending").length,
+      declined: guests.filter((g) => g.rsvp_status === "declined").length,
     }),
     [guests, seatedGuests.length],
   );
@@ -369,134 +385,162 @@ export function EventWorkspace({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-screen overflow-hidden bg-zinc-50">
-        {/* Left sidebar - Guests or Budget */}
-        {activeTab === "budget" ? (
-          <BudgetTab eventId={initialEvent.id} />
-        ) : (
-          <GuestSidebar
-            guests={filteredGuests}
-            allGuestsCount={stats.total}
-            stats={stats}
-            search={search}
-            onSearchChange={setSearch}
-            tagFilter={tagFilter}
-            onTagFilterChange={setTagFilter}
-            allTags={allTags}
-            rsvpFilter={rsvpFilter}
-            onRsvpFilterChange={setRsvpFilter}
-            onSmartPaste={() => setSmartPasteOpen(true)}
-            onAddGuest={() => setAddGuestOpen(true)}
-            onOpenInvites={() => setInvitesOpen(true)}
-          />
-        )}
-
-        {/* Canvas / Budget area */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4">
-            <div className="flex min-w-0 items-center gap-2">
-              {activeTab === "budget" ? (
-                <DollarSign className="h-4 w-4 shrink-0 text-zinc-400" />
-              ) : (
-                <LayoutDashboard className="h-4 w-4 shrink-0 text-zinc-400" />
-              )}
-              <h1 className="truncate text-sm font-semibold text-zinc-900">
-                {initialEvent.name}
-              </h1>
-              <span className="hidden items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500 sm:flex">
-                <Users className="h-3 w-3" />
-                {stats.seated}/{stats.total} seated
+      <div className="app-mesh relative flex h-screen flex-col overflow-hidden text-zinc-900">
+        <header className="relative z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-zinc-200/70 bg-white/65 px-4 backdrop-blur-xl sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="group flex shrink-0 items-center gap-2.5"
+              aria-label="Back to dashboard"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 text-white shadow-lg shadow-indigo-600/25 transition-transform group-hover:-translate-y-0.5">
+                <CalendarDays className="h-4 w-4" />
               </span>
-            </div>
+              <span className="hidden text-sm font-semibold tracking-tight text-zinc-900 sm:block">
+                EventPilot
+              </span>
+            </Link>
 
-            <div className="flex items-center gap-2">
-              {/* Tab Navigation */}
-              <div className="flex bg-zinc-100 rounded-md p-1">
-                <button
-                  onClick={() => setActiveTab("guests")}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                    activeTab === "guests"
-                      ? "bg-white text-indigo-700 shadow-sm"
-                      : "text-zinc-600 hover:text-zinc-900",
-                  )}
-                >
-                  <Users className="h-3.5 w-3.5" />
-                  Guests
-                </button>
-                <button
-                  onClick={() => setActiveTab("budget")}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                    activeTab === "budget"
-                      ? "bg-white text-indigo-700 shadow-sm"
-                      : "text-zinc-600 hover:text-zinc-900",
-                  )}
-                >
-                  <DollarSign className="h-3.5 w-3.5" />
-                  Budget
-                </button>
-              </div>
+            <span className="hidden h-7 w-px bg-zinc-200/80 lg:block" />
 
-              <div className="flex items-center gap-2">
-                {activeTab !== "budget" && (
-                  <>
-                    <button
-                      onClick={() => setAddTableOpen(true)}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-                    >
-                      + Add Table
-                    </button>
-                    <button
-                      onClick={() => setAutoSeatOpen(true)}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-md bg-indigo-600 px-3 text-sm font-medium text-white hover:bg-indigo-700"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Auto-Seat with AI
-                    </button>
-                  </>
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <h1 className="max-w-[34vw] truncate text-sm font-semibold tracking-tight text-zinc-950 sm:max-w-[42vw] lg:max-w-none">
+                  {initialEvent.name}
+                </h1>
+                {initialEvent.event_type && (
+                  <span className="hidden shrink-0 rounded-full border border-zinc-200/80 bg-white/70 px-2 py-0.5 text-[10px] font-medium capitalize text-zinc-500 sm:inline-flex">
+                    {initialEvent.event_type.replace(/_/g, " ")}
+                  </span>
                 )}
-                <button
-                  onClick={() => setIsChatOpen((v) => !v)}
-                  className={cn(
-                    "inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium",
-                    isChatOpen
-                      ? "bg-indigo-100 text-indigo-700"
-                      : "border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50",
-                  )}
-                >
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  Co-Pilot
-                </button>
-                </div>
               </div>
-            </header>
+              <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11px] text-zinc-400">
+                <CalendarDays className="h-3 w-3 shrink-0" />
+                <span className="truncate" suppressHydrationWarning>
+                  {initialEvent.date
+                    ? new Date(initialEvent.date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "Date not set"}
+                </span>
+                <span className="shrink-0 text-zinc-300">·</span>
+                <span className="inline-flex shrink-0 items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  {stats.seated}/{stats.total} seated
+                </span>
+              </div>
+            </div>
+          </div>
 
-            {activeTab === "budget" ? (
-              <div className="flex-1 overflow-hidden">
+          <div className="flex shrink-0 items-center gap-2">
+            {activeTab === "seating" && tables.length > 0 && (
+              <>
+                <button
+                  onClick={() => setAddTableOpen(true)}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-700 shadow-sm shadow-zinc-950/5 transition-all hover:border-zinc-300 hover:bg-white"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Add table</span>
+                </button>
+                {guests.length > 0 && (
+                  <button
+                    onClick={() => setAutoSeatOpen(true)}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 text-xs font-medium text-white shadow-lg shadow-indigo-600/25 transition-all hover:-translate-y-0.5 hover:from-violet-500 hover:to-indigo-500"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Auto-seat with AI</span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </header>
+
+        <main className="relative min-h-0 flex-1">
+          <div className="flex h-full min-h-0">
+            {activeTab === "overview" && (
+              <WorkspaceOverview
+                eventId={initialEvent.id}
+                guests={guests}
+                tables={tables}
+                stats={stats}
+                onNavigate={(view) => setActiveTab(view)}
+                onAddGuest={() => setAddGuestOpen(true)}
+                onAddTable={() => setAddTableOpen(true)}
+                onOpenInvites={() => setInvitesOpen(true)}
+              />
+            )}
+
+            {activeTab === "guests" && (
+              <GuestRoster
+                guests={filteredRoster}
+                allGuestsCount={stats.total}
+                tables={tables}
+                stats={stats}
+                search={search}
+                onSearchChange={setSearch}
+                tagFilter={tagFilter}
+                onTagFilterChange={setTagFilter}
+                allTags={allTags}
+                rsvpFilter={rsvpFilter}
+                onRsvpFilterChange={setRsvpFilter}
+                onSmartPaste={() => setSmartPasteOpen(true)}
+                onAddGuest={() => setAddGuestOpen(true)}
+                onOpenInvites={() => setInvitesOpen(true)}
+              />
+            )}
+
+            {activeTab === "seating" && (
+              <>
+                <GuestSidebar
+                  guests={filteredGuests}
+                  allGuestsCount={stats.total}
+                  stats={stats}
+                  search={search}
+                  onSearchChange={setSearch}
+                  tagFilter={tagFilter}
+                  onTagFilterChange={setTagFilter}
+                  allTags={allTags}
+                  rsvpFilter={rsvpFilter}
+                  onRsvpFilterChange={setRsvpFilter}
+                  onSmartPaste={() => setSmartPasteOpen(true)}
+                  onAddGuest={() => setAddGuestOpen(true)}
+                  onOpenInvites={() => setInvitesOpen(true)}
+                />
+                <FloorPlanCanvas
+                  tables={tables}
+                  guests={guests}
+                  onAddTable={() => setAddTableOpen(true)}
+                />
+              </>
+            )}
+
+            {activeTab === "budget" && (
+              <div className="h-full min-w-0 flex-1 overflow-hidden">
                 <BudgetTab eventId={initialEvent.id} />
               </div>
-            ) : (
-              <FloorPlanCanvas tables={tables} guests={guests} />
             )}
           </div>
 
-          {/* Co-Pilot chat drawer */}
-          <CoPilotChat
-            open={isChatOpen}
-            onClose={() => setIsChatOpen(false)}
-            context={eventContext}
-          />
+          {isChatOpen && (
+            <div className="absolute bottom-24 right-3 top-3 z-40 w-[min(380px,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/95 shadow-2xl shadow-zinc-950/20 backdrop-blur-xl animate-soft-rise sm:right-4">
+              <CoPilotChat
+                open={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+                context={eventContext}
+              />
+            </div>
+          )}
+        </main>
 
-          {/* Overlay while dragging */}
-          <DragOverlay>
-            {activeGuest ? (
-              <div className="rounded-lg border border-indigo-300 bg-white p-2 shadow-lg">
-                <GuestCard guest={activeGuest} />
-              </div>
-            ) : null}
-          </DragOverlay>
-        </div>
+        <WorkspaceDock
+          activeView={activeTab}
+          copilotOpen={isChatOpen}
+          onNavigate={setActiveTab}
+          onToggleCopilot={() => setIsChatOpen((value) => !value)}
+        />
 
         {/* Dialogs */}
         <SmartPasteDialog
@@ -536,6 +580,15 @@ export function EventWorkspace({
           eventName={initialEvent.name}
           guests={guests}
         />
+
+        <DragOverlay>
+          {activeGuest ? (
+            <div className="rounded-2xl border border-indigo-300 bg-white p-2 shadow-2xl shadow-indigo-950/20">
+              <GuestCard guest={activeGuest} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </div>
     </DndContext>
   );
 }

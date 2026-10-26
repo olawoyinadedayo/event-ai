@@ -4,12 +4,12 @@ import { cn } from "@/lib/utils";
 type BadgeVariant = "default" | "success" | "warning" | "danger" | "neutral" | "outline";
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: "bg-indigo-100 text-indigo-700",
-  success: "bg-emerald-100 text-emerald-700",
-  warning: "bg-amber-100 text-amber-800",
-  danger: "bg-red-100 text-red-700",
-  neutral: "bg-zinc-100 text-zinc-600",
-  outline: "border border-zinc-200 text-zinc-600",
+  default: "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/10",
+  success: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/10",
+  warning: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/10",
+  danger: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10",
+  neutral: "bg-zinc-100 text-zinc-600 ring-1 ring-inset ring-zinc-500/10",
+  outline: "border border-zinc-200 bg-white/60 text-zinc-600",
 };
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {

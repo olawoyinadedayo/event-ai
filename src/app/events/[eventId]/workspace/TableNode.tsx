@@ -38,6 +38,9 @@ export function TableNode({ table, guests }: TableNodeProps) {
 
   const isRound = table.shape === "round";
   const full = guests.length >= table.capacity;
+  const occupancy = table.capacity
+    ? Math.min(100, (guests.length / table.capacity) * 100)
+    : 0;
 
   return (
     <div className="relative h-full w-full" data-table>
@@ -69,41 +72,47 @@ export function TableNode({ table, guests }: TableNodeProps) {
         {...attributes}
         {...listeners}
         className={cn(
-          "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+          "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing",
           isDragging && "opacity-50",
-          isOver && "ring-4 ring-indigo-400 ring-offset-2",
+          isOver && "ring-4 ring-indigo-300/60 ring-offset-4 ring-offset-[#f8f8fc]",
           full && "cursor-not-allowed",
         )}
         title={full ? "Table is full" : "Drag to move · Drop guest here"}
       >
         <div
           className={cn(
-            "relative flex items-center justify-center",
-            isRound
-              ? "rounded-full bg-gradient-to-br from-zinc-50 to-zinc-200 shadow-inner"
-              : "rounded-lg bg-gradient-to-br from-zinc-50 to-zinc-200 shadow-inner",
-            isRound ? "h-[140px] w-[140px]" : "h-[100px] w-[160px]",
+            "relative flex items-center justify-center border border-zinc-200/80 bg-gradient-to-br from-white via-white to-zinc-100/80 shadow-lg shadow-zinc-950/[0.07]",
+            isRound ? "h-[144px] w-[144px] rounded-full" : "h-[108px] w-[172px] rounded-2xl",
           )}
         >
-          {/* Table surface */}
           <div
             className={cn(
-              "flex flex-col items-center justify-center border-2 border-zinc-300 bg-white/80",
+              "relative flex flex-col items-center justify-center overflow-hidden border border-zinc-200/80 bg-white/90 shadow-inner shadow-zinc-950/[0.03]",
               isRound
-                ? "h-[110px] w-[110px] rounded-full"
-                : "h-[72px] w-[130px] rounded-md",
+                ? "h-[116px] w-[116px] rounded-full"
+                : "h-[80px] w-[142px] rounded-xl",
             )}
           >
-            <span className="flex items-center gap-1 px-2 text-center text-xs font-semibold text-zinc-800">
-              <GripVertical className="h-3 w-3 text-zinc-400" />
-              {table.name}
+            <span className="flex items-center gap-1 px-2 text-center text-[11px] font-semibold tracking-tight text-zinc-800">
+              <GripVertical className="h-3 w-3 text-indigo-300" />
+              <span className="max-w-[92px] truncate">{table.name}</span>
             </span>
-            <span className="mt-0.5 text-[10px] text-zinc-500">
+            <span className="mt-0.5 text-[9px] font-medium text-zinc-400">
               {guests.length}/{table.capacity} seated
             </span>
-            <span className="text-[10px] text-zinc-400">
-              {isRound ? "Round" : "Rectangular"}
+            <span className="text-[9px] capitalize text-zinc-300">
+              {table.shape}
             </span>
+
+            <div className="absolute inset-x-4 bottom-2 h-1 overflow-hidden rounded-full bg-zinc-100">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all",
+                  full ? "bg-amber-400" : "bg-indigo-500",
+                )}
+                style={{ width: `${occupancy}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>

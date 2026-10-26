@@ -22,11 +22,12 @@ export function SeatNode({ tableId, seatNumber, occupant }: SeatNodeProps) {
       ref={setNodeRef}
       data-seat
       className={cn(
-        "flex h-[36px] w-[36px] items-center justify-center rounded-full border-2 transition-all",
+        "flex h-9 w-9 items-center justify-center rounded-full border-2 shadow-sm transition-all duration-150",
         occupant
-          ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-          : "border-dashed border-zinc-400 bg-white/70 text-zinc-400",
-        isOver && "scale-125 border-indigo-500 bg-indigo-100 text-indigo-600",
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700 shadow-emerald-950/5"
+          : "border-dashed border-zinc-300 bg-white/75 text-zinc-400 hover:border-indigo-300 hover:text-indigo-400",
+        isOver &&
+          "scale-125 border-indigo-400 bg-indigo-50 text-indigo-600 shadow-lg shadow-indigo-600/15",
       )}
       title={
         occupant
@@ -45,7 +46,7 @@ export function SeatNode({ tableId, seatNumber, occupant }: SeatNodeProps) {
               .toUpperCase()}
           </span>
           {occupant.dietary_notes && (
-            <span className="absolute -top-1 -right-2">
+            <span className="absolute -right-2 -top-1 rounded-full bg-white">
               <WheatOff className="h-3 w-3 text-amber-500" />
             </span>
           )}

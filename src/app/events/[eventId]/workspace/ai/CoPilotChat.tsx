@@ -124,37 +124,42 @@ export function CoPilotChat({ open, onClose, context }: CoPilotChatProps) {
   ];
 
   return (
-    <aside className="flex w-[340px] shrink-0 flex-col border-l border-zinc-200 bg-white">
-      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
-            <Sparkles className="h-3.5 w-3.5" />
+    <aside className="flex h-full w-full flex-col bg-white/95">
+      <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3.5">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+            <Sparkles className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="text-sm font-semibold text-zinc-900">Event Co-Pilot</h2>
-            <p className="text-[10px] text-zinc-500">
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-sm font-semibold tracking-tight text-zinc-950">
+                Event Co-Pilot
+              </h2>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_1px_rgba(52,211,153,0.5)]" />
+            </div>
+            <p className="text-[10px] text-zinc-400">
               {context.confirmedGuests} confirmed · {context.tableCount} tables
             </p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600"
+          className="rounded-xl p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
           aria-label="Close Co-Pilot"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto scrollbar-thin p-4">
+      <div className="scrollbar-thin flex-1 space-y-3 overflow-y-auto p-4">
         {messages.map((m) => (
           <div
             key={m.id}
             className={cn(
-              "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-relaxed",
+              "max-w-[88%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed shadow-sm",
               m.role === "user"
-                ? "ml-auto bg-indigo-600 text-white"
-                : "bg-zinc-100 text-zinc-800",
+                ? "ml-auto rounded-br-md bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-indigo-600/10"
+                : "rounded-bl-md bg-zinc-100/80 text-zinc-700 ring-1 ring-inset ring-zinc-200/60",
             )}
           >
             {m.content}
@@ -162,15 +167,15 @@ export function CoPilotChat({ open, onClose, context }: CoPilotChatProps) {
         ))}
 
         {status === "loading" && (
-          <div className="flex items-center gap-2 rounded-2xl bg-zinc-100 px-3 py-2 text-sm text-zinc-500">
-            <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:0.15s]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:0.3s]" />
+          <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-zinc-100/80 px-3.5 py-2.5 text-sm text-zinc-500 ring-1 ring-inset ring-zinc-200/60">
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:0.15s]" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-400 [animation-delay:0.3s]" />
           </div>
         )}
 
         {status === "error" && error && (
-          <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+          <div className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-inset ring-red-600/10">
             {error}
           </div>
         )}
@@ -179,12 +184,12 @@ export function CoPilotChat({ open, onClose, context }: CoPilotChatProps) {
       </div>
 
       {messages.length <= 1 && status === "ready" && (
-        <div className="flex flex-wrap gap-2 px-4 pb-2">
+        <div className="flex flex-wrap gap-1.5 px-4 pb-2">
           {quickPrompts.map((p) => (
             <button
               key={p}
               onClick={() => sendMessage(p)}
-              className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs text-zinc-600 hover:border-indigo-300 hover:text-indigo-600"
+              className="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-medium text-zinc-500 shadow-sm shadow-zinc-950/[0.02] transition-colors hover:border-indigo-200 hover:bg-indigo-50/50 hover:text-indigo-600"
             >
               {p}
             </button>
@@ -197,15 +202,15 @@ export function CoPilotChat({ open, onClose, context }: CoPilotChatProps) {
           e.preventDefault();
           sendMessage(input);
         }}
-        className="border-t border-zinc-200 p-3"
+        className="border-t border-zinc-100 p-3"
       >
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-2 rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-sm shadow-zinc-950/[0.03] transition-colors focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-500/10">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about timelines, vendors, seating…"
             rows={2}
-            className="resize-none"
+            className="min-h-0 resize-none border-0 bg-transparent px-1.5 py-1 shadow-none focus:bg-transparent focus:ring-0"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -216,6 +221,7 @@ export function CoPilotChat({ open, onClose, context }: CoPilotChatProps) {
           <Button
             type="submit"
             size="icon"
+            className="mb-0.5 shrink-0"
             disabled={status === "loading" || !input.trim()}
           >
             <MessageSquare className="h-4 w-4" />

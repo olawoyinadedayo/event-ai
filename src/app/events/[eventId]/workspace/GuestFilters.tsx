@@ -16,9 +16,9 @@ interface GuestFiltersProps {
 
 const rsvpOptions = [
   { value: "all", label: "All" },
-  { value: "confirmed", label: "Confirmed" },
+  { value: "confirmed", label: "Going" },
   { value: "pending", label: "Pending" },
-  { value: "declined", label: "Declined" },
+  { value: "declined", label: "No" },
 ];
 
 export function GuestFilters({
@@ -31,28 +31,28 @@ export function GuestFilters({
   onRsvpFilterChange,
 }: GuestFiltersProps) {
   return (
-    <div className="space-y-2 border-b border-zinc-200 px-4 py-3">
+    <div className="space-y-3">
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search guests…"
-          className="pl-8"
+          className="h-10 bg-white pl-9 shadow-none"
         />
       </div>
 
       {/* RSVP filter */}
-      <div className="flex gap-1">
+      <div className="grid grid-cols-4 gap-1 rounded-xl bg-zinc-100/80 p-1">
         {rsvpOptions.map((opt) => (
           <button
             key={opt.value}
             onClick={() => onRsvpFilterChange(opt.value)}
             className={cn(
-              "flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors",
+              "rounded-lg px-1.5 py-1.5 text-[11px] font-medium transition-all",
               rsvpFilter === opt.value
-                ? "bg-zinc-900 text-white"
-                : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+                ? "bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-100"
+                : "text-zinc-500 hover:text-zinc-800",
             )}
           >
             {opt.label}
@@ -63,10 +63,10 @@ export function GuestFilters({
       {/* Tag filter */}
       {allTags.length > 0 && (
         <div>
-          <div className="mb-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400">
+          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Tags
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {allTags.map((tag) => {
               const selected = tagFilter.includes(tag);
               return (
@@ -80,10 +80,10 @@ export function GuestFilters({
                     )
                   }
                   className={cn(
-                    "rounded-full px-2 py-0.5 text-xs transition-colors",
+                    "rounded-full px-2 py-0.5 text-[10px] font-medium transition-all",
                     selected
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+                      ? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/20"
+                      : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700",
                   )}
                 >
                   {tag}
@@ -101,7 +101,7 @@ export function GuestFilters({
             onTagFilterChange([]);
             onRsvpFilterChange("all");
           }}
-          className="flex items-center gap-1 text-xs text-indigo-600 hover:underline"
+          className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-500 hover:underline"
         >
           <X className="h-3 w-3" />
           Clear filters

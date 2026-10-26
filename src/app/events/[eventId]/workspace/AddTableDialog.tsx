@@ -5,6 +5,7 @@ import { addTableAction } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Table } from "@/types/app";
 
@@ -53,14 +54,28 @@ export function AddTableDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 p-4 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onOpenChange(false)}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-zinc-900">Add a table</h2>
-        <p className="mb-4 text-sm text-zinc-500">
-          Design your floor plan — you can drag tables around afterward.
-        </p>
+      <div className="animate-soft-rise w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl shadow-zinc-950/25">
+        <div className="mb-5 flex items-start justify-between">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight text-zinc-950">
+              Add a table
+            </h2>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              Design your floor plan — you can drag tables around afterward.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="rounded-xl p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -75,26 +90,26 @@ export function AddTableDialog({
                 type="button"
                 onClick={() => setShape("round")}
                 className={cn(
-                  "flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors",
+                  "flex flex-col items-center gap-2 rounded-xl border p-4 shadow-sm shadow-zinc-950/[0.02] transition-all",
                   shape === "round"
-                    ? "border-indigo-500 bg-indigo-50"
-                    : "border-zinc-200 hover:border-zinc-300",
+                    ? "border-indigo-300 bg-indigo-50/70 ring-4 ring-indigo-500/10"
+                    : "border-zinc-200 bg-white hover:border-zinc-300",
                 )}
               >
-                <span className="h-10 w-10 rounded-full border-4 border-zinc-400" />
+                <span className="h-10 w-10 rounded-full border-4 border-zinc-300 bg-white" />
                 <span className="text-sm font-medium text-zinc-700">Round</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShape("rectangle")}
                 className={cn(
-                  "flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors",
+                  "flex flex-col items-center gap-2 rounded-xl border p-4 shadow-sm shadow-zinc-950/[0.02] transition-all",
                   shape === "rectangle"
-                    ? "border-indigo-500 bg-indigo-50"
-                    : "border-zinc-200 hover:border-zinc-300",
+                    ? "border-indigo-300 bg-indigo-50/70 ring-4 ring-indigo-500/10"
+                    : "border-zinc-200 bg-white hover:border-zinc-300",
                 )}
               >
-                <span className="h-8 w-12 rounded-sm border-4 border-zinc-400" />
+                <span className="h-8 w-12 rounded-md border-4 border-zinc-300 bg-white" />
                 <span className="text-sm font-medium text-zinc-700">Rectangular</span>
               </button>
             </div>
@@ -111,15 +126,17 @@ export function AddTableDialog({
               max={20}
               value={capacity}
               onChange={(e) => setCapacity(parseInt(e.target.value, 10))}
-              className="w-full accent-indigo-600"
+              className="mt-1 w-full accent-indigo-600"
             />
           </div>
 
           {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+            <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-inset ring-red-600/10">
+              {error}
+            </p>
           )}
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

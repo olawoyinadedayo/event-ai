@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Plus, Edit, Trash2, CheckCircle, Circle, DollarSign, Loader2, X } from "lucide-react";
+import { Plus, Edit, Trash2, CheckCircle, Circle, DollarSign, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Expense } from "@/types/app";
 import type { ExpenseCategory } from "@/types/database";
 
@@ -22,24 +23,149 @@ const CATEGORIES: ExpenseCategory[] = [
 ];
 
 const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
-  Venue: "bg-purple-100 text-purple-700",
-  Catering: "bg-amber-100 text-amber-700",
-  Entertainment: "bg-pink-100 text-pink-700",
-  Decor: "bg-teal-100 text-teal-700",
-  Photography: "bg-indigo-100 text-indigo-700",
-  Transport: "bg-orange-100 text-orange-700",
-  Other: "bg-zinc-100 text-zinc-700",
+  Venue: "bg-violet-50 text-violet-700 ring-violet-600/10",
+  Catering: "bg-amber-50 text-amber-700 ring-amber-600/10",
+  Entertainment: "bg-pink-50 text-pink-700 ring-pink-600/10",
+  Decor: "bg-teal-50 text-teal-700 ring-teal-600/10",
+  Photography: "bg-indigo-50 text-indigo-700 ring-indigo-600/10",
+  Transport: "bg-orange-50 text-orange-700 ring-orange-600/10",
+  Other: "bg-zinc-100 text-zinc-600 ring-zinc-500/10",
 };
 
-function SummaryCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color?: string }) {
+const summaryTones = {
+  indigo: {
+    icon: "bg-indigo-50 text-indigo-600",
+    value: "text-zinc-950",
+  },
+  amber: {
+    icon: "bg-amber-50 text-amber-600",
+    value: "text-zinc-950",
+  },
+  emerald: {
+    icon: "bg-emerald-50 text-emerald-600",
+    value: "text-emerald-600",
+  },
+  violet: {
+    icon: "bg-violet-50 text-violet-600",
+    value: "text-zinc-950",
+  },
+};
+
+function SummaryCard({
+  icon: Icon,
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  detail: string;
+  tone: keyof typeof summaryTones;
+}) {
+  const styles = summaryTones[tone];
+
   return (
-    <div className="rounded-lg bg-white p-5 shadow-sm border border-zinc-100">
-      <div className="flex items-center gap-2 text-zinc-500 text-sm">
-        <Icon className="h-4 w-4" />
-        {label}
+    <div className="bento-card rounded-2xl p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400">
+            {label}
+          </div>
+          <div
+            className={cn(
+              "mt-3 text-[1.65rem] font-semibold tracking-[-0.04em]",
+              styles.value,
+            )}
+          >
+            {value}
+          </div>
+          <p className="mt-1 text-[11px] text-zinc-400">{detail}</p>
+        </div>
+        <span
+          className={cn(
+            "grid h-9 w-9 shrink-0 place-items-center rounded-xl",
+            styles.icon,
+          )}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
       </div>
-      <div className="mt-1.5 text-2xl font-bold text-zinc-900" style={{ color: color }}>
-        {value}
+    </div>
+  );
+}
+
+function BudgetSkeleton() {
+  return (
+    <div
+      className="scrollbar-thin h-full overflow-y-auto"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading budget"
+    >
+      <span className="sr-only">Loading budget…</span>
+      <div className="mx-auto w-full max-w-6xl px-5 pb-32 pt-7 sm:px-7 lg:px-10 lg:pt-9">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <Skeleton className="h-6 w-28 rounded-full" />
+            <Skeleton className="mt-3 h-10 w-36" />
+            <Skeleton className="mt-3 h-3.5 w-80 max-w-full" />
+          </div>
+          <Skeleton className="h-10 w-32 shrink-0 rounded-xl" />
+        </div>
+
+        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="bento-card rounded-2xl p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <Skeleton className="h-2.5 w-24" />
+                  <Skeleton className="mt-3.5 h-7 w-28" />
+                  <Skeleton className="mt-2 h-2.5 w-32 max-w-full" />
+                </div>
+                <Skeleton className="h-9 w-9 shrink-0 rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-zinc-200/80 bg-white/80 p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="mt-2 h-2.5 w-48" />
+            </div>
+            <Skeleton className="h-6 w-12 rounded-full" />
+          </div>
+          <Skeleton className="mt-4 h-2 w-full rounded-full" />
+        </div>
+
+        <div className="mt-8">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="mt-2 h-3 w-40" />
+          <div className="mt-4 space-y-2.5">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="flex flex-col gap-3 rounded-2xl border border-zinc-200/70 bg-white/80 p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <Skeleton className="h-6 w-20 shrink-0 rounded-full" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-3 w-2/5" />
+                    <Skeleton className="h-2.5 w-3/5" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-7 w-7 rounded-lg" />
+                  <Skeleton className="h-7 w-7 rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -212,162 +338,250 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
   const pendingCount = expenses.length - paidCount;
   const utilization = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-      </div>
-    );
+  if (loading && expenses.length === 0) {
+    return <BudgetSkeleton />;
   }
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      {/* Summary Cards - Clean 4-column grid */}
-      <div className="border-b border-zinc-200 px-6 py-5 bg-zinc-50">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <SummaryCard icon={DollarSign} label="Total Budget" value={`$${totalBudget.toLocaleString()}`} />
-          <SummaryCard icon={CheckCircle} label="Total Spent" value={`$${totalSpent.toLocaleString()}`} color="#f59e0b" />
-          <SummaryCard icon={Circle} label="Remaining" value={`$${remaining.toLocaleString()}`} color="#10b981" />
-          <SummaryCard
-            icon={CheckCircle}
-            label="Paid / Pending"
-            value={`${paidCount} / ${pendingCount}`}
-          />
-        </div>
-      </div>
+    <div className="scrollbar-thin h-full overflow-y-auto">
+      <div className="mx-auto w-full max-w-6xl px-5 pb-32 pt-7 sm:px-7 lg:px-10 lg:pt-9">
+        <div className="animate-soft-rise flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-white/70 px-2.5 py-1 text-[11px] font-medium text-indigo-600 shadow-sm shadow-indigo-950/5">
+              <DollarSign className="h-3 w-3" />
+              Event budget
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-zinc-950">
+              Budget
+            </h1>
+            <p className="mt-1.5 max-w-xl text-sm leading-6 text-zinc-500">
+              Track estimates, actual spend, and what still needs to be paid.
+            </p>
+          </div>
 
-      {/* Progress Bar */}
-      <div className="px-6 py-4 border-b border-zinc-100 bg-white">
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="text-zinc-600">Budget Utilization</span>
-          <span className="font-medium text-zinc-900">{utilization.toFixed(1)}%</span>
-        </div>
-        <div className="h-2.5 w-full overflow-hidden rounded-full bg-zinc-100">
-          <div
-            className={cn(
-              "h-full transition-all duration-500",
-              utilization > 100 ? "bg-red-500" : utilization > 80 ? "bg-amber-500" : "bg-emerald-500",
-            )}
-            style={{ width: `${Math.min(utilization, 100)}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Expense List */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-zinc-900">Expenses</h2>
-          <button
-            onClick={() => openDialog()}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Add Expense
-          </button>
-        </div>
-
-        {expenses.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <DollarSign className="mb-3 h-10 w-10 text-zinc-300" />
-            <p className="text-sm text-zinc-500">No expenses yet</p>
+          {expenses.length > 0 && (
             <button
               onClick={() => openDialog()}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
             >
               <Plus className="h-4 w-4" />
-              Add First Expense
+              Add expense
             </button>
+          )}
+        </div>
+
+        {/* Summary Cards */}
+        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SummaryCard
+            icon={DollarSign}
+            label="Total budget"
+            value={`$${totalBudget.toLocaleString()}`}
+            detail={`${expenses.length} expense${expenses.length === 1 ? "" : "s"} planned`}
+            tone="indigo"
+          />
+          <SummaryCard
+            icon={CheckCircle}
+            label="Total spent"
+            value={`$${totalSpent.toLocaleString()}`}
+            detail="Actual costs recorded"
+            tone="amber"
+          />
+          <SummaryCard
+            icon={Circle}
+            label="Remaining"
+            value={`$${remaining.toLocaleString()}`}
+            detail={remaining < 0 ? "Over the planned budget" : "Available to spend"}
+            tone="emerald"
+          />
+          <SummaryCard
+            icon={CheckCircle}
+            label="Paid / pending"
+            value={`${paidCount} / ${pendingCount}`}
+            detail={`${expenses.length} total items`}
+            tone="violet"
+          />
+        </div>
+
+        {/* Progress */}
+        <div className="animate-soft-rise mt-4 rounded-2xl border border-zinc-200/80 bg-white/80 p-5 shadow-sm shadow-zinc-950/[0.03] backdrop-blur-sm [animation-delay:80ms]">
+          <div className="flex items-center justify-between text-sm">
+            <div>
+              <span className="text-xs font-medium text-zinc-700">
+                Budget utilization
+              </span>
+              <p className="mt-0.5 text-[11px] text-zinc-400">
+                ${totalSpent.toLocaleString()} of ${totalBudget.toLocaleString()} spent
+              </p>
+            </div>
+            <span
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                utilization > 100
+                  ? "bg-red-50 text-red-600"
+                  : utilization > 80
+                    ? "bg-amber-50 text-amber-700"
+                    : "bg-emerald-50 text-emerald-700",
+              )}
+            >
+              {utilization.toFixed(1)}%
+            </span>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {expenses.map((expense) => (
-              <div
-                key={expense.id}
-                className="flex items-center justify-between rounded-lg bg-white p-4 shadow-sm border border-zinc-100 hover:border-zinc-200 transition-colors"
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all duration-700",
+                utilization > 100
+                  ? "bg-red-500"
+                  : utilization > 80
+                    ? "bg-amber-400"
+                    : "bg-gradient-to-r from-indigo-500 to-violet-500",
+              )}
+              style={{ width: `${Math.min(utilization, 100)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Expense List */}
+        <div className="mt-8">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight text-zinc-950">
+                Expenses
+              </h2>
+              <p className="mt-0.5 text-xs text-zinc-400">
+                {expenses.length} item{expenses.length === 1 ? "" : "s"} in this budget
+              </p>
+            </div>
+          </div>
+
+          {expenses.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-white/60 py-16 text-center">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-zinc-50 text-zinc-300">
+                <DollarSign className="h-5 w-5" />
+              </span>
+              <p className="mt-3 text-sm font-medium text-zinc-700">
+                No expenses yet
+              </p>
+              <p className="mt-1 text-xs text-zinc-400">
+                Add your first line item to start tracking the budget.
+              </p>
+              <button
+                onClick={() => openDialog()}
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-medium text-white shadow-sm shadow-indigo-600/20 transition-colors hover:bg-indigo-500"
               >
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <span
-                    className={cn(
-                      "flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium",
-                      CATEGORY_COLORS[expense.category] || CATEGORY_COLORS.Other,
-                    )}
-                  >
-                    {expense.category}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="font-medium text-zinc-900 truncate">{expense.title}</p>
-                    <div className="flex items-center gap-3 text-xs text-zinc-500 mt-0.5">
-                      <span>Est: ${Number(expense.estimated_cost).toLocaleString()}</span>
-                      <span>Actual: ${Number(expense.actual_cost).toLocaleString()}</span>
-                      {expense.notes && <span className="truncate max-w-[200px]">{expense.notes}</span>}
+                <Plus className="h-3.5 w-3.5" />
+                Add first expense
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {expenses.map((expense) => (
+                <div
+                  key={expense.id}
+                  className="group flex flex-col gap-3 rounded-2xl border border-zinc-200/70 bg-white/85 p-4 shadow-sm shadow-zinc-950/[0.02] backdrop-blur-sm transition-all hover:border-indigo-100 hover:bg-white hover:shadow-md hover:shadow-indigo-950/[0.04] sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span
+                      className={cn(
+                        "flex-shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium ring-1 ring-inset",
+                        CATEGORY_COLORS[expense.category] || CATEGORY_COLORS.Other,
+                      )}
+                    >
+                      {expense.category}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-zinc-900">
+                        {expense.title}
+                      </p>
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-zinc-400">
+                        <span>Est. ${Number(expense.estimated_cost).toLocaleString()}</span>
+                        <span>Actual ${Number(expense.actual_cost).toLocaleString()}</span>
+                        {expense.notes && (
+                          <span className="max-w-[240px] truncate">{expense.notes}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+                  <div className="flex shrink-0 items-center gap-1.5 self-end sm:self-auto">
+                    <label className="mr-1 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-zinc-50 px-2 py-1 text-[10px] font-medium text-zinc-500 ring-1 ring-inset ring-zinc-500/10">
+                      <input
+                        type="checkbox"
+                        checked={expense.paid_status}
+                        onChange={() => handlePaidToggle(expense)}
+                        className="h-3.5 w-3.5 rounded border-zinc-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
+                        aria-label={expense.paid_status ? "Mark as unpaid" : "Mark as paid"}
+                      />
+                      {expense.paid_status ? "Paid" : "Mark paid"}
+                    </label>
+                    <button
+                      onClick={() => openDialog(expense)}
+                      className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+                      aria-label="Edit expense"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(expense.id)}
+                      className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                      aria-label="Delete expense"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={expense.paid_status}
-                    onChange={() => handlePaidToggle(expense)}
-                    className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
-                    aria-label={expense.paid_status ? "Mark as unpaid" : "Mark as paid"}
-                  />
-                  <button
-                    onClick={() => openDialog(expense)}
-                    className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors"
-                    aria-label="Edit expense"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(expense.id)}
-                    className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    aria-label="Delete expense"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Add/Edit Expense Dialog */}
       {isDialogOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-2xl rounded-xl bg-white shadow-xl overflow-hidden animate-in">
-            <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
-              <h3 className="text-lg font-semibold text-zinc-900">
-                {editingExpense ? "Edit Expense" : "Add Expense"}
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 p-4 backdrop-blur-sm">
+          <div className="animate-soft-rise w-full max-w-2xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl shadow-zinc-950/25">
+            <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <DollarSign className="h-4 w-4" />
+                </span>
+                <div>
+                  <h3 className="text-base font-semibold tracking-tight text-zinc-950">
+                    {editingExpense ? "Edit expense" : "Add expense"}
+                  </h3>
+                  <p className="mt-0.5 text-[11px] text-zinc-400">
+                    Track planned and actual costs for this event.
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={closeDialog}
-                className="rounded-lg p-2 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+                className="rounded-xl p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
                 aria-label="Close"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <form onSubmit={handleSubmit} className="max-h-[75vh] space-y-5 overflow-y-auto p-6">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium text-zinc-600 mb-1.5">Title *</label>
+                  <label className="mb-1.5 block text-[13px] font-medium text-zinc-700">Title *</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     required
-                    className="w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors"
+                    className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
                     placeholder="Venue Rental, Catering Service, DJ/Entertainment..."
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-zinc-600 mb-1.5">Category *</label>
+                  <label className="mb-1.5 block text-[13px] font-medium text-zinc-700">Category *</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as ExpenseCategory })}
-                    className="w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors bg-white"
+                    className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
                   >
                     {CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -377,74 +591,74 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-zinc-600 mb-1.5">Estimated Cost</label>
+                  <label className="mb-1.5 block text-[13px] font-medium text-zinc-700">Estimated cost</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">$</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-400">$</span>
                     <input
                       type="number"
                       min="0"
                       step="0.01"
                       value={formData.estimated_cost}
                       onChange={(e) => setFormData({ ...formData, estimated_cost: Number(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-zinc-300 pl-8 pr-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors"
+                      className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-8 pr-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
                       placeholder="5,000.00"
                     />
                   </div>
-                  <p className="mt-1 text-xs text-zinc-500">Planned budget for this item</p>
+                  <p className="mt-1 text-[11px] text-zinc-400">Planned budget for this item</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-zinc-600 mb-1.5">Actual Cost</label>
+                  <label className="mb-1.5 block text-[13px] font-medium text-zinc-700">Actual cost</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">$</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-400">$</span>
                     <input
                       type="number"
                       min="0"
                       step="0.01"
                       value={formData.actual_cost}
                       onChange={(e) => setFormData({ ...formData, actual_cost: Number(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-zinc-300 pl-8 pr-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors"
+                      className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-8 pr-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
                       placeholder="4,850.00"
                     />
                   </div>
-                  <p className="mt-1 text-xs text-zinc-500">Final amount paid or invoiced</p>
+                  <p className="mt-1 text-[11px] text-zinc-400">Final amount paid or invoiced</p>
                 </div>
-                <div className="sm:col-span-2 flex items-center gap-3">
+                <div className="flex items-center gap-3 sm:col-span-2">
                   <input
                     type="checkbox"
                     id="paid"
                     checked={formData.paid_status}
                     onChange={(e) => setFormData({ ...formData, paid_status: e.target.checked })}
-                    className="h-5 w-5 rounded border-zinc-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/20 transition-colors"
+                    className="h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
                   />
-                  <label htmlFor="paid" className="text-sm text-zinc-700 cursor-pointer font-medium">
-                    Mark as Paid
+                  <label htmlFor="paid" className="cursor-pointer text-sm font-medium text-zinc-700">
+                    Mark as paid
                   </label>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-zinc-600 mb-1.5">Notes</label>
+                <label className="mb-1.5 block text-[13px] font-medium text-zinc-700">Notes</label>
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={3}
-                  className="w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors resize-none"
-                  placeholder="Optional: deposit details, vendor info, payment terms, dietary requirements..."
+                  className="w-full resize-none rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                  placeholder="Optional: deposit details, vendor info, payment terms..."
                 />
               </div>
-              <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100">
+              <div className="flex justify-end gap-2 border-t border-zinc-100 pt-4">
                 <button
                   type="button"
                   onClick={closeDialog}
-                  className="rounded-lg border border-zinc-300 bg-white px-5 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition-colors"
+                  className="h-9 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 shadow-sm shadow-zinc-950/5 transition-colors hover:bg-zinc-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || !formData.title}
-                  className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="h-9 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {submitting ? "Saving..." : editingExpense ? "Update" : "Add"}
+                  {submitting ? "Saving..." : editingExpense ? "Update expense" : "Add expense"}
                 </button>
               </div>
             </form>

@@ -20,9 +20,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
+    <div className="rounded-2xl border border-zinc-200/80 bg-white/85 p-8 shadow-2xl shadow-indigo-950/[0.06] backdrop-blur-xl">
       <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-zinc-900">Welcome back</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-zinc-950">
+          Welcome back
+        </h1>
         <p className="mt-1 text-sm text-zinc-500">Sign in to your EventPilot account</p>
       </div>
 
@@ -39,11 +41,13 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+          <p className="rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-inset ring-red-600/10">
+            {error}
+          </p>
         )}
 
-        <Button type="submit" className="w-full" size="lg" disabled={isPending}>
-          Sign in
+        <Button type="submit" className="w-full shadow-lg shadow-indigo-600/20" size="lg" disabled={isPending}>
+          {isPending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
 
