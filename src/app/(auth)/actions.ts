@@ -22,9 +22,6 @@ export async function signupAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const role = String(formData.get("role") ?? "diy_host");
-  const appUrl = (
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-  ).replace(/\/$/, "");
 
   if (password.length < 6) {
     return { error: "Password must be at least 6 characters." };
@@ -36,7 +33,6 @@ export async function signupAction(formData: FormData) {
     password,
     options: {
       data: { name, role },
-      emailRedirectTo: `${appUrl}/auth/callback?next=%2Fdashboard`,
     },
   });
 
