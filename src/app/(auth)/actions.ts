@@ -41,10 +41,33 @@ export async function signupAction(formData: FormData) {
   }
 
   if (!data.session) {
+    if (data.user?.identities?.length === 0) {
+      return { accountExists: true, email };
+    }
     return { email };
   }
 
   redirect("/dashboard");
+}
+
+export async function resendConfirmationAction(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    return { error: "Email is required." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true };
 }
 
 export async function signOutAction() {

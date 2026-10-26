@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { signupAction } from "../actions";
+import { resendConfirmationAction, signupAction } from "../actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { MailCheck } from "lucide-react";
+import { LogIn, MailCheck } from "lucide-react";
 import Link from "next/link";
 
 const roles = [
@@ -18,11 +18,19 @@ const roles = [
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [existingEmail, setExistingEmail] = useState<string | null>(null);
   const [role, setRole] = useState("diy_host");
+  const [resendStatus, setResendStatus] = useState<"idle" | "sent">("idle");
+  const [resendError, setResendError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isResending, startResend] = useTransition();
 
   function handleSubmit(formData: FormData) {
     setError(null);
+    setSentTo(null);
+    setExistingEmail(null);
+    setResendStatus("idle");
+    setResendError(null);
     formData.set("role", role);
     startTransition(async () => {
       const result = await signupAction(formData);
@@ -30,10 +38,80 @@ export default function SignupPage() {
         setError(result.error);
         return;
       }
+      if (
+        result &&
+        "accountExists" in result &&
+        result.accountExists &&
+        typeof result.email === "string"
+      ) {
+        setExistingEmail(result.email);
+        return;
+      }
       if (result && "email" in result && typeof result.email === "string") {
         setSentTo(result.email);
       }
     });
+  }
+
+  function handleResend() {
+    if (!sentTo) return;
+
+    setResendError(null);
+    setResendStatus("idle");
+    startResend(async () => {
+      const formData = new FormData();
+      formData.set("email", sentTo);
+      const result = await resendConfirmationAction(formData);
+      if (result && "error" in result && typeof result.error === "string") {
+        setResendError(result.error);
+        return;
+      }
+      setResendStatus("sent");
+    });
+  }
+
+  if (existingEmail) {
+    return (
+      <div
+        className="rounded-2xl border border-zinc-200/80 bg-white/85 p-8 text-center shadow-2xl shadow-indigo-950/[0.06] backdrop-blur-xl"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
+          <LogIn className="h-6 w-6" />
+        </div>
+        <h1 className="mt-5 text-2xl font-semibold tracking-[-0.03em] text-zinc-950">
+          Account already exists
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-zinc-500">
+          This email is already registered:
+        </p>
+        <p className="mt-1 break-all text-sm font-medium text-zinc-800">
+          {existingEmail}
+        </p>
+        <p className="mt-4 text-sm leading-6 text-zinc-500">
+          No confirmation email was sent. Sign in with your existing password,
+          or use a different email to create a new account.
+        </p>
+
+        <Link
+          href="/login"
+          className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
+        >
+          Sign in
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            setExistingEmail(null);
+            setError(null);
+          }}
+          className="mt-3 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+        >
+          Use a different email
+        </button>
+      </div>
+    );
   }
 
   if (sentTo) {
@@ -59,6 +137,31 @@ export default function SignupPage() {
           Click the link to activate your account, then sign in. It may take a
           minute to arrive — check your spam folder if you don&apos;t see it.
         </p>
+        <p className="mt-2 text-xs leading-5 text-zinc-500">
+          Still nothing?{" "}
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={isResending || resendStatus === "sent"}
+            className="font-medium text-indigo-600 transition-colors hover:text-indigo-500 hover:underline disabled:cursor-default disabled:text-zinc-400 disabled:no-underline"
+          >
+            {isResending
+              ? "Sending…"
+              : resendStatus === "sent"
+                ? "Email resent"
+                : "Resend confirmation"}
+          </button>
+        </p>
+        {resendStatus === "sent" && (
+          <p className="mt-2 text-xs leading-5 text-emerald-600">
+            Confirmation email resent. It may take another minute to arrive.
+          </p>
+        )}
+        {resendError && (
+          <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-600 ring-1 ring-inset ring-red-600/10">
+            {resendError}
+          </p>
+        )}
 
         <Link
           href="/login"
@@ -71,6 +174,8 @@ export default function SignupPage() {
           onClick={() => {
             setSentTo(null);
             setError(null);
+            setResendStatus("idle");
+            setResendError(null);
           }}
           className="mt-3 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900"
         >
