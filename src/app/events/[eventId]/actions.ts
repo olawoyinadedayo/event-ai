@@ -1,7 +1,13 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { RsvpStatus, TableShape, ExpenseCategory } from "@/types/database";
+import { isCurrencyCode } from "@/lib/currency";
+import type {
+  CurrencyCode,
+  RsvpStatus,
+  TableShape,
+  ExpenseCategory,
+} from "@/types/database";
 
 export async function addGuestAction(
   eventId: string,
@@ -83,6 +89,35 @@ export async function addTableAction(
 
   if (error) return { error: error.message, data: null };
   return { error: null, data };
+}
+
+export async function updateEventCurrencyAction(
+  eventId: string,
+  currency: CurrencyCode,
+) {
+  if (!isCurrencyCode(currency)) {
+    return { error: "Unsupported currency." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Not authenticated." };
+
+  const { data, error } = await supabase
+    .from("events")
+    .update({ currency })
+    .eq("id", eventId)
+    .eq("user_id", user.id)
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+  if (!data) return { error: "Event not found." };
+
+  return { error: null };
 }
 
 export async function updateTablePositionAction(tableId: string, pos_x: number, pos_y: number) {

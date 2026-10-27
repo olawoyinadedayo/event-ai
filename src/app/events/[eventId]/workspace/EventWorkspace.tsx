@@ -17,6 +17,8 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type { Event, Guest, Table } from "@/types/app";
+import type { CurrencyCode } from "@/types/database";
+import { DEFAULT_CURRENCY } from "@/lib/currency";
 import { GuestSidebar } from "./GuestSidebar";
 import { GuestRoster } from "./GuestRoster";
 import { FloorPlanCanvas } from "./FloorPlanCanvas";
@@ -34,6 +36,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   assignGuestToSeatAction,
   unassignGuestAction,
+  updateEventCurrencyAction,
   updateTablePositionAction,
 } from "../actions";
 import {
@@ -69,6 +72,9 @@ export function EventWorkspace({
   const [addGuestOpen, setAddGuestOpen] = useState(false);
   const [invitesOpen, setInvitesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    initialEvent.currency ?? DEFAULT_CURRENCY,
+  );
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -361,6 +367,30 @@ export function EventWorkspace({
     setGuests((prev) => (prev.some((item) => item.id === guest.id) ? prev : [guest, ...prev]));
   }, []);
 
+  const handleCurrencyChange = useCallback(
+    async (nextCurrency: CurrencyCode) => {
+      const previousCurrency = currency;
+      setCurrency(nextCurrency);
+
+      try {
+        const result = await updateEventCurrencyAction(
+          initialEvent.id,
+          nextCurrency,
+        );
+
+        if (result.error) {
+          setCurrency(previousCurrency);
+        }
+
+        return result;
+      } catch (error) {
+        setCurrency(previousCurrency);
+        throw error;
+      }
+    },
+    [currency, initialEvent.id],
+  );
+
   const eventContext = useMemo(
     () => ({
       eventId: initialEvent.id,
@@ -468,6 +498,7 @@ export function EventWorkspace({
                 guests={guests}
                 tables={tables}
                 stats={stats}
+                currency={currency}
                 onNavigate={(view) => setActiveTab(view)}
                 onAddGuest={() => setAddGuestOpen(true)}
                 onAddTable={() => setAddTableOpen(true)}
@@ -521,7 +552,11 @@ export function EventWorkspace({
 
             {activeTab === "budget" && (
               <div className="h-full min-w-0 flex-1 overflow-hidden">
-                <BudgetTab eventId={initialEvent.id} />
+                <BudgetTab
+                  eventId={initialEvent.id}
+                  currency={currency}
+                  onCurrencyChange={handleCurrencyChange}
+                />
               </div>
             )}
           </div>

@@ -5,6 +5,7 @@ import { createEventAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CURRENCIES, DEFAULT_CURRENCY } from "@/lib/currency";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -153,6 +154,25 @@ export default function NewEventPage() {
           <div>
             <Label htmlFor="date">Event date</Label>
             <Input id="date" name="date" type="datetime-local" />
+          </div>
+
+          <div>
+            <Label htmlFor="currency">Budget currency</Label>
+            <select
+              id="currency"
+              name="currency"
+              defaultValue={DEFAULT_CURRENCY}
+              className="h-10 w-full rounded-xl border border-zinc-200 bg-white/80 px-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all hover:border-zinc-300 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+            >
+              {CURRENCIES.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.code} ({currency.symbol})
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px] text-zinc-400">
+              Used for budget totals and expense amounts.
+            </p>
           </div>
 
           {error && (

@@ -2,14 +2,29 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Plus, Edit, Trash2, CheckCircle, Circle, DollarSign, X } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  CheckCircle,
+  Circle,
+  ChevronDown,
+  DollarSign,
+  Loader2,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CURRENCIES, formatCurrency, getCurrency } from "@/lib/currency";
 import type { Expense } from "@/types/app";
-import type { ExpenseCategory } from "@/types/database";
+import type { CurrencyCode, ExpenseCategory } from "@/types/database";
 
 interface BudgetTabProps {
   eventId: string;
+  currency: CurrencyCode;
+  onCurrencyChange: (
+    currency: CurrencyCode,
+  ) => Promise<{ error: string | null }>;
 }
 
 const CATEGORIES: ExpenseCategory[] = [
@@ -171,7 +186,11 @@ function BudgetSkeleton() {
   );
 }
 
-export function BudgetTab({ eventId }: BudgetTabProps) {
+export function BudgetTab({
+  eventId,
+  currency,
+  onCurrencyChange,
+}: BudgetTabProps) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -185,6 +204,8 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
     notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [savingCurrency, setSavingCurrency] = useState(false);
+  const [currencyError, setCurrencyError] = useState<string | null>(null);
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -284,6 +305,22 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
     resetForm();
   };
 
+  const handleCurrencyChange = async (nextCurrency: CurrencyCode) => {
+    if (nextCurrency === currency || savingCurrency) return;
+
+    setSavingCurrency(true);
+    setCurrencyError(null);
+
+    try {
+      const result = await onCurrencyChange(nextCurrency);
+      if (result.error) setCurrencyError(result.error);
+    } catch {
+      setCurrencyError("Could not update currency. Please try again.");
+    } finally {
+      setSavingCurrency(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -359,15 +396,67 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
             </p>
           </div>
 
-          {expenses.length > 0 && (
-            <button
-              onClick={() => openDialog()}
-              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
-            >
-              <Plus className="h-4 w-4" />
-              Add expense
-            </button>
-          )}
+          <div className="flex flex-col items-stretch gap-2 sm:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              <label
+                className="relative inline-flex h-10 items-center rounded-xl border border-zinc-200 bg-white/80 pl-3.5 pr-9 shadow-sm shadow-zinc-950/[0.02] transition-colors focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-500/10"
+                title={getCurrency(currency).label}
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none flex items-center gap-1.5"
+                >
+                  <span className="text-sm font-semibold text-zinc-400">
+                    {getCurrency(currency).symbol}
+                  </span>
+                  <span className="text-sm font-semibold text-zinc-800">
+                    {currency}
+                  </span>
+                </span>
+                <select
+                  value={currency}
+                  onChange={(event) => {
+                    void handleCurrencyChange(
+                      event.target.value as CurrencyCode,
+                    );
+                  }}
+                  disabled={savingCurrency}
+                  aria-label="Event currency"
+                  className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent opacity-0 focus:outline-none disabled:cursor-wait"
+                >
+                  {CURRENCIES.map((option) => (
+                    <option key={option.code} value={option.code}>
+                      {option.code} ({option.symbol})
+                    </option>
+                  ))}
+                </select>
+                {savingCurrency ? (
+                  <Loader2 className="pointer-events-none absolute right-3 h-3.5 w-3.5 animate-spin text-zinc-400" />
+                ) : (
+                  <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-zinc-400" />
+                )}
+              </label>
+
+              {expenses.length > 0 && (
+                <button
+                  onClick={() => openDialog()}
+                  className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add expense
+                </button>
+              )}
+            </div>
+            {currencyError && (
+              <p
+                role="status"
+                aria-live="polite"
+                className="text-right text-[11px] text-red-600"
+              >
+                {currencyError}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -375,21 +464,21 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
           <SummaryCard
             icon={DollarSign}
             label="Total budget"
-            value={`$${totalBudget.toLocaleString()}`}
+            value={formatCurrency(totalBudget, currency)}
             detail={`${expenses.length} expense${expenses.length === 1 ? "" : "s"} planned`}
             tone="indigo"
           />
           <SummaryCard
             icon={CheckCircle}
             label="Total spent"
-            value={`$${totalSpent.toLocaleString()}`}
+            value={formatCurrency(totalSpent, currency)}
             detail="Actual costs recorded"
             tone="amber"
           />
           <SummaryCard
             icon={Circle}
             label="Remaining"
-            value={`$${remaining.toLocaleString()}`}
+            value={formatCurrency(remaining, currency)}
             detail={remaining < 0 ? "Over the planned budget" : "Available to spend"}
             tone="emerald"
           />
@@ -410,7 +499,8 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
                 Budget utilization
               </span>
               <p className="mt-0.5 text-[11px] text-zinc-400">
-                ${totalSpent.toLocaleString()} of ${totalBudget.toLocaleString()} spent
+                {formatCurrency(totalSpent, currency)} of{" "}
+                {formatCurrency(totalBudget, currency)} spent
               </p>
             </div>
             <span
@@ -494,8 +584,14 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
                         {expense.title}
                       </p>
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-zinc-400">
-                        <span>Est. ${Number(expense.estimated_cost).toLocaleString()}</span>
-                        <span>Actual ${Number(expense.actual_cost).toLocaleString()}</span>
+                        <span>
+                          Est.{" "}
+                          {formatCurrency(Number(expense.estimated_cost), currency)}
+                        </span>
+                        <span>
+                          Actual{" "}
+                          {formatCurrency(Number(expense.actual_cost), currency)}
+                        </span>
                         {expense.notes && (
                           <span className="max-w-[240px] truncate">{expense.notes}</span>
                         )}
@@ -550,7 +646,7 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
                     {editingExpense ? "Edit expense" : "Add expense"}
                   </h3>
                   <p className="mt-0.5 text-[11px] text-zinc-400">
-                    Track planned and actual costs for this event.
+                    Track planned and actual costs in {currency}.
                   </p>
                 </div>
               </div>
@@ -591,32 +687,50 @@ export function BudgetTab({ eventId }: BudgetTabProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[13px] font-medium text-zinc-700">Estimated cost</label>
+                  <label
+                    htmlFor="estimated-cost"
+                    className="mb-1.5 block text-[13px] font-medium text-zinc-700"
+                  >
+                    Estimated cost ({currency})
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-400">$</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-400">
+                      {getCurrency(currency).symbol}
+                    </span>
                     <input
+                      id="estimated-cost"
                       type="number"
                       min="0"
                       step="0.01"
+                      inputMode="decimal"
                       value={formData.estimated_cost}
                       onChange={(e) => setFormData({ ...formData, estimated_cost: Number(e.target.value) || 0 })}
-                      className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-8 pr-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                      className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
                       placeholder="5,000.00"
                     />
                   </div>
                   <p className="mt-1 text-[11px] text-zinc-400">Planned budget for this item</p>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[13px] font-medium text-zinc-700">Actual cost</label>
+                  <label
+                    htmlFor="actual-cost"
+                    className="mb-1.5 block text-[13px] font-medium text-zinc-700"
+                  >
+                    Actual cost ({currency})
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-400">$</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-400">
+                      {getCurrency(currency).symbol}
+                    </span>
                     <input
+                      id="actual-cost"
                       type="number"
                       min="0"
                       step="0.01"
+                      inputMode="decimal"
                       value={formData.actual_cost}
                       onChange={(e) => setFormData({ ...formData, actual_cost: Number(e.target.value) || 0 })}
-                      className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-8 pr-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                      className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3.5 text-sm text-zinc-900 shadow-sm shadow-zinc-950/[0.02] transition-all placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
                       placeholder="4,850.00"
                     />
                   </div>

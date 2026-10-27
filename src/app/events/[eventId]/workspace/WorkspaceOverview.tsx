@@ -17,7 +17,9 @@ import {
   Wallet,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/currency";
 import type { Expense, Guest, Table } from "@/types/app";
+import type { CurrencyCode } from "@/types/database";
 
 interface OverviewStats {
   total: number;
@@ -32,6 +34,7 @@ interface WorkspaceOverviewProps {
   guests: Guest[];
   tables: Table[];
   stats: OverviewStats;
+  currency: CurrencyCode;
   onNavigate: (view: "guests" | "seating" | "budget") => void;
   onAddGuest: () => void;
   onAddTable: () => void;
@@ -48,14 +51,6 @@ interface NextStep {
   };
 }
 
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 function percent(value: number, total: number) {
   if (total <= 0) return 0;
   return Math.min(100, Math.round((value / total) * 100));
@@ -70,6 +65,7 @@ export function WorkspaceOverview({
   guests,
   tables,
   stats,
+  currency,
   onNavigate,
   onAddGuest,
   onAddTable,
@@ -230,7 +226,7 @@ export function WorkspaceOverview({
         budget === null ? (
           <Skeleton className="h-8 w-28" />
         ) : (
-          formatCurrency(budget.actual)
+          formatCurrency(budget.actual, currency)
         ),
       unit: "spent",
       detail:
@@ -239,7 +235,7 @@ export function WorkspaceOverview({
         ) : budget.estimated === 0 ? (
           "No budget set yet"
         ) : (
-          `${budgetPercent}% of ${formatCurrency(budget.estimated)} planned`
+          `${budgetPercent}% of ${formatCurrency(budget.estimated, currency)} planned`
         ),
       icon: Wallet,
       onClick: () => onNavigate("budget"),

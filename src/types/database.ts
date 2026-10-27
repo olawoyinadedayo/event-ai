@@ -10,6 +10,7 @@ export type UserRole = "pro_planner" | "diy_host";
 export type RsvpStatus = "pending" | "confirmed" | "declined";
 export type TableShape = "round" | "rectangle";
 export type ExpenseCategory = "Venue" | "Catering" | "Entertainment" | "Decor" | "Photography" | "Transport" | "Other";
+export type CurrencyCode = "USD" | "NGN" | "EUR" | "GBP";
 
 export interface Database {
   public: {
@@ -44,6 +45,7 @@ export interface Database {
           name: string;
           event_type: string | null;
           date: string | null;
+          currency: CurrencyCode;
           created_at: string;
         };
         Insert: {
@@ -52,6 +54,7 @@ export interface Database {
           name: string;
           event_type?: string | null;
           date?: string | null;
+          currency?: CurrencyCode;
           created_at?: string;
         };
         Update: {
@@ -60,6 +63,7 @@ export interface Database {
           name?: string;
           event_type?: string | null;
           date?: string | null;
+          currency?: CurrencyCode;
           created_at?: string;
         };
       };
