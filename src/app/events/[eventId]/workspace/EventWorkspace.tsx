@@ -6,6 +6,7 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  TouchSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
@@ -72,6 +73,7 @@ export function EventWorkspace({
   const supabase = useMemo(() => createClient(), []);
 
   const sensors = useSensors(
+    useSensor(TouchSensor, { activationConstraint: { distance: 6 } }),
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );

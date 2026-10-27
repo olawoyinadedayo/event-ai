@@ -72,7 +72,7 @@ export function TableNode({ table, guests }: TableNodeProps) {
         {...attributes}
         {...listeners}
         className={cn(
-          "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing",
+          "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing touch-none",
           isDragging && "opacity-50",
           isOver && "ring-4 ring-indigo-300/60 ring-offset-4 ring-offset-[#f8f8fc]",
           full && "cursor-not-allowed",
