@@ -3,6 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
+function getAuthCallbackUrl() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  return `${appUrl.replace(/\/$/, "")}/auth/callback`;
+}
+
 export async function loginAction(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
@@ -11,7 +16,17 @@ export async function loginAction(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: error.message };
+    const needsConfirmation = error.message
+      .toLowerCase()
+      .includes("email not confirmed");
+
+    return {
+      error: needsConfirmation
+        ? "Your email isn't confirmed yet. Check your inbox for the confirmation link."
+        : error.message,
+      needsConfirmation,
+      email,
+    };
   }
 
   redirect("/dashboard");
@@ -33,6 +48,7 @@ export async function signupAction(formData: FormData) {
     password,
     options: {
       data: { name, role },
+      emailRedirectTo: getAuthCallbackUrl(),
     },
   });
 
@@ -61,6 +77,9 @@ export async function resendConfirmationAction(formData: FormData) {
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
+    options: {
+      emailRedirectTo: getAuthCallbackUrl(),
+    },
   });
 
   if (error) {
@@ -81,7 +100,7 @@ export async function oauthSignInAction(provider: "google" | "github") {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/auth/callback`,
+      redirectTo: getAuthCallbackUrl(),
     },
   });
 
