@@ -3,9 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-function getAuthCallbackUrl() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `${appUrl.replace(/\/$/, "")}/auth/callback`;
+function getAuthCallbackUrl(nextPath?: string) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const url = new URL("/auth/callback", appUrl);
+  if (nextPath) url.searchParams.set("next", nextPath);
+  return url.toString();
 }
 
 export async function loginAction(formData: FormData) {
@@ -87,6 +89,57 @@ export async function resendConfirmationAction(formData: FormData) {
   }
 
   return { success: true };
+}
+
+export async function requestPasswordResetAction(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    return { error: "Email is required." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: getAuthCallbackUrl("/reset-password"),
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: true, email };
+}
+
+export async function updatePasswordAction(formData: FormData) {
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters." };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: "Passwords do not match." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "Your reset link has expired. Request a new one." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  await supabase.auth.signOut({ scope: "others" });
+  redirect("/dashboard");
 }
 
 export async function signOutAction() {
